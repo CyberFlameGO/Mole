@@ -19,6 +19,7 @@ struct i_sockaddr_in {
     signed short sin_family;
     unsigned short sin_port;
     signed char sin_zero[8];
+    id sin_addr;
 };
 
 struct freq {
@@ -94,7 +95,7 @@ int n_read(int fd, char *buf, int n){
     return n;
 }
 
-int turn_alloc(char *dev, int flags){
+int tun_alloc(char *dev, int flags){
 
     struct freq ifr;
     int fd, err;
@@ -164,6 +165,74 @@ int main(int argc, char *argv[]){
     unsigned long int tap2net = 0, net2tap = 0;
     //kinda obvious what this is
     handle_option(option, (char) if_name, cliserv, (char *) remote_ip[16], port);
+
+    argv += optind;
+    argc -= optind;
+
+    if(argc > 0){
+        handle_errors("Too may options selected!\n");
+        //todo print help
+    }
+
+    if(*if_name == '\0'){
+        handle_errors("Interface name is not specified!\n");
+        //todo print help
+    } else if(cliserv < 0){
+        handle_errors("Must specify a client server, or enable server mode!\n");
+        //todo print help (again)
+    } else if((cliserv == CLIENT) && (*remote_ip == '\0')){
+        handle_errors("An address needs to specified!\n");
+        //todo print help (i really need to make this method)
+    }
+
+    if((tap_fd == tun_alloc(if_name, flags)) < 0){
+        handle_errors("Error while connection to tun/tap interface! %s\n", if_name);
+        exit(1);
+    }
+    handle_debug("Connected to %s interfvace \n", if_name);
+
+    if((sock_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0){
+        handle_errors("socket() could not connect");
+        exit(1);
+    }
+
+    if(cliserv == CLIENT){
+        memset(&remote, 0, sizeof(remote));
+        remote.sin_family = AF_INET;
+        remote.sin_addr.s_addr = htonl(INADDR_ANY);
+        remote.sin_port = htons(port);
+
+        if(connect(sock_fd, (struct i_sockaddr *) &remote, sizeof(remote)) < 0){
+            handle_errors("couldn't connect!");
+            exit(1);
+        }
+        net_fd = sock_fd;
+        handle_debug("CLIENT connected to server!");
+    } else {
+        if(setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, (char *) &optval, sizeof(optval)) < 0){
+            handle_errors("Could not handle option handling using setsockopt()");
+            exit(1);
+        }
+        memset(&local, 0, sizeof(local));
+        local.sin_family = AF_INET;
+        local.sin_addr.s_addr = htonl(INADDR_ANY);
+        local.sin_port = htons(port);
+        if(bind(sock_fd, (struct i_sockaddr*) &local, sizeof(local)) < 0){
+            handle_errors("could not bind locals!");
+            exit(1);
+        }
+        if(listen(sock_fd, 5) < 0){
+            handle_errors("could not listen() to the sock_fd!");
+            exit(1);
+        }
+
+        remotelen = sizeof(remote);
+        memset(&remote, 0, remotelen);
+        if((net_fd = accept(sock_fd, (struct i_sockaddr*)&remote, &remotelen)) < 0){
+            handle_errors("could not accept using sock_fd and remote from sockaddr");
+            exit(1);
+        }
+    }
 
     return 0;
 }
