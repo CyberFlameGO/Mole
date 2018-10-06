@@ -25,7 +25,16 @@ struct freq {
 
     union {
         struct sockaddr ifru_addr;
-
+        struct sockaddr ifru_dst_addr;
+        struct sockaddr ifru_borad_addr;
+        struct sockaddr ifru_network_mask;
+        struct sockaddr ifru_hw_addr;
+        signed short ifru_flags;
+        signed int ifru_i_values;
+        signed int ifru_mtu;
+        signed char ifru_slave[IFH_WADDR_LEN];
+        signed char ifru_new_name[IFH_WADDR_LEN];
+        void * ifru_data;
     };
 };
 
