@@ -26,6 +26,15 @@ fn main(){
     }
 }
 
+
+fn shutdown_future(handle: &Handle) -> BoxFuture<(), std::io::Error> {
+    use tokio_signal::unix::{Signal, SIGINT, SIGTERM};
+    let sigint = Signal::net(SIGINT, handle).flatten_stream();
+    let sigterm = Signal::new(SIGTERM, handle).flatten_stream();
+
+    Stream::select(sigint, sigterm).into_future().map(|_| ()).map_err(|(e,_)| e).boxed()
+}
+
 fn run() -> hyper::Result<()> {
     let mut core = Core::new()?;
     let handle = core.handle;
@@ -39,11 +48,41 @@ fn run() -> hyper::Result<()> {
         http.bind_connection(&handle, socket, addr, service);
         Ok(())
     };
-    core.run(server)?;
-    Ok(())
+    let shutdown = shutdown_future(&handle);
+    match core.run(Future::select(shutdown, server)){
+        Ok(((), _next)) => {}
+        Err((error, _next)) => bail!(error),
+         shutdown_future(&handle) => println!("Shutdown due to error!")
+    }
+
+    struct WaitUntilZero { info: Rc<RefCell<Info>>, }
+
+    impl Future for WaitUntilZero {
+        type Item = ();
+        type Error = std::io::Error;
+
+        fn poll(&mut self) -> futures::Poll<(), std::io::Error> {
+            use futures::Async;
+            let mut info = self.info.borrow_mut();
+
+            if info.active == 0 {
+                Ok(Async::Ready(()))
+            } else {
+                info.blocker = Some(task::current());
+                Ok(Async::NotReady)
+            }
+        }
+    }
+
+    let timeout = Timeout::new(Duration::from_secs(20), &handle)?;
+    let wait = WaitUntilZero{info: info.clone() };
+
+    match core.run(Future::select(wait, timeout)){
+        Ok(((), _next)) => Ok(()),
+        Err((error, _next)) => Err(error.into()),
+    }
 }
 
-fn shutdown_future(handle: &Handle) -> BoxFuture<(), std::io::Error> {
+quick_main!(run);
 
-}
 
