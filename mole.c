@@ -1,7 +1,3 @@
 #include "mole.h"
-
 #include <stdio.h>
-
-void hello(void) {
-    printf("Hello, World!\n");
-}
+#define MOLE_LIBRARY_H
