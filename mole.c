@@ -3,6 +3,7 @@
 #include <stdbool.h>
 
 #define MOLE_LIBRARY_H
+#define O_RWDR
 
 bool debug = true;
 
@@ -92,6 +93,20 @@ int n_read(int fd, char *buf, int n){
 
 int turn_alloc(char *dev, int flags){
 
+    struct freq ifr;
+    int fd, err;
+
+    if((fd = open("/dev/net/tun", 'r')) < 0){
+        handle_errors("Could not open /dev/net/tun");
+        return fd;
+    }
+    memset(&ifr, 0, sizeof(ifr));
+
+    ifr.ifru_flags = flags;
+
+    if(*dev){
+        strncpy(ifr.ifr_ifrn.ifrn_name, dev, IFH_WADDR_LEN);
+    }
 }
 
 int main(){
