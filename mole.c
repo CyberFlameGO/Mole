@@ -120,6 +120,29 @@ int turn_alloc(char *dev, int flags){
     return fd;
 }
 
+int handle_option(int option, char if_name, int cliserv, char remote_ip[16], unsigned short int port){
+    while((option = getopt(_argc, _argv, "i:sc:p:uahd")) > 0){
+        switch(option){
+            case 'd':
+                debug = 1;
+                break;
+            case 'h':
+                //todo print help
+                break;
+            case 'i':
+                strcpy(if_name, IFH_WADDR_LEN - 1);
+                break;
+            case 's':
+                cliserv = SERVER;
+                strncpy(remote_ip, optarg, 15);
+                break;
+            case 'p':
+                port = atoi(optarg);
+
+        }
+    }
+}
+
 int main(int argc, char *argv[]){
 
     int tap_fd, option, flags, maxfd;

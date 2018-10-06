@@ -30,6 +30,7 @@ int turn_alloc(char *dev, int flags);
 int crea(int fd, char *buf, int n);
 int c_write(int fd, char *buf, int n);
 int n_read(int fd, char *buf, int n);
+int handle_option(int option, char if_name, int cliserv, char remote_ip[16], unsigned short int port);
 void handle_debug(char *msg, ...);
 void handle_errors(char *msg, ...);
 void help(void);
