@@ -1,6 +1,8 @@
 # Mole
 
-Mole is a very simple tunnelling cli that uses TUN, TAP and TCP to tunnel through IPv4 and ARP.
+Mole is a very simple tunnelling cli that uses TUN, TAP and TCP to tunnel through IPv4 and ARP. It also uses Rust to 
+handle a reserve proxy, this ensure that the headers are stripped correctly in both directions and adds in the clients IP
+to then forward the address header.
 
 # Need to know
 
