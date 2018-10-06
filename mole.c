@@ -138,6 +138,10 @@ int handle_option(int option, char if_name, int cliserv, char remote_ip[16], uns
                 break;
             case 'p':
                 port = atoi(optarg);
+                break;
+            default:
+                handle_errors("Unkown option %c\n:", option);
+                //todo print usage
 
         }
     }
@@ -145,7 +149,8 @@ int handle_option(int option, char if_name, int cliserv, char remote_ip[16], uns
 
 int main(int argc, char *argv[]){
 
-    int tap_fd, option, flags, maxfd;
+    //basic data sets for the switch above
+    int tap_fd, option = 0, flags, maxfd;
     char if_name[IFH_WADDR_LEN] = "";
     int header_len = IP_HEDR_LEN;
     uint16_t nread, nwrite, plength;
@@ -157,6 +162,8 @@ int main(int argc, char *argv[]){
     socklen_t remotelen;
     int cliserv = -1;
     unsigned long int tap2net = 0, net2tap = 0;
+    //kinda obvious what this is
+    handle_option(option, (char) if_name, cliserv, (char *) remote_ip[16], port);
 
     return 0;
 }
