@@ -1,18 +1,20 @@
 #include "mole.h"
 #include <stdio.h>
 #include <stdbool.h>
+#include <winsock.h>
 
 #define MOLE_LIBRARY_H
 #define O_RWDR
+#define TUNSETIFF 0
 
 bool debug = true;
 
-struct sockaddr {
+struct i_sockaddr {
    unsigned short sa_family;
    signed char sa_data[14];
 };
 
-struct sockaddr_in {
+struct i_sockaddr_in {
     signed short sin_family;
     unsigned short sin_port;
     signed char sin_zero[8];
@@ -25,11 +27,11 @@ struct freq {
     }ifr_ifrn;
 
     union {
-        struct sockaddr ifru_addr;
-        struct sockaddr ifru_dst_addr;
-        struct sockaddr ifru_borad_addr;
-        struct sockaddr ifru_network_mask;
-        struct sockaddr ifru_hw_addr;
+        struct i_sockaddr ifru_addr;
+        struct i_sockaddr ifru_dst_addr;
+        struct i_sockaddr ifru_borad_addr;
+        struct i_sockaddr ifru_network_mask;
+        struct i_sockaddr ifru_hw_addr;
         signed short ifru_flags;
         signed int ifru_i_values;
         signed int ifru_mtu;
@@ -107,6 +109,14 @@ int turn_alloc(char *dev, int flags){
     if(*dev){
         strncpy(ifr.ifr_ifrn.ifrn_name, dev, IFH_WADDR_LEN);
     }
+
+    if((err == ioctlsocket(fd, TUNSETIFF, (void *) &ifr)) < 0){
+        handle_errors("ioctlsocket could not pass TUNSETIFF");
+        close(fd);
+        return err;
+    }
+    strcpy(dev, ifr.ifr_ifrn.ifrn_name);
+    return fd;
 }
 
 int main(){
