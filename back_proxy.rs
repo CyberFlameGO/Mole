@@ -12,6 +12,13 @@ use tokio_core::reactor::Core;
 use std::net::{SocketAddr, Ipv4Addr};
 use std::io::{self, Write};
 
+error_chain! {
+    foreign_links {
+        Io(std::io::Error);
+        Hyper(hyper::Error);
+    }
+}
+
 fn main(){
     if let Err(error) = run() {
         write!(&mut io::stderr(), "{}", error).expect("Error writing to stdeer");
@@ -34,5 +41,9 @@ fn run() -> hyper::Result<()> {
     };
     core.run(server)?;
     Ok(())
+}
+
+fn shutdown_future(handle: &Handle) -> BoxFuture<(), std::io::Error> {
+
 }
 
