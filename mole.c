@@ -1,9 +1,33 @@
 #include "mole.h"
 #include <stdio.h>
 #include <stdbool.h>
+
 #define MOLE_LIBRARY_H
 
 bool debug = true;
+
+struct sockaddr {
+   unsigned short sa_family;
+   signed char sa_data[14];
+};
+
+struct sockaddr_in {
+    signed short sin_family;
+    unsigned short sin_port;
+    signed char sin_zero[8];
+};
+
+struct freq {
+#define IFH_WADDR_LEN 6
+    union {
+        char ifrn_name[IFH_WADDR_LEN];
+    }ifr_ifrn;
+
+    union {
+        struct sockaddr ifru_addr;
+
+    };
+};
 
 void handle_debug(char *msg, ...){
     va_list args;
@@ -55,6 +79,10 @@ int n_read(int fd, char *buf, int n){
         }
     }
     return n;
+}
+
+int turn_alloc(char *dev, int flags){
+
 }
 
 int main(){
