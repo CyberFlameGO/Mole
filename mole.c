@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <winsock.h>
+#include <ws2tcpip.h>
 
 #define MOLE_LIBRARY_H
 #define O_RWDR
@@ -119,6 +120,20 @@ int turn_alloc(char *dev, int flags){
     return fd;
 }
 
-int main(){
+int main(int argc, char *argv[]){
+
+    int tap_fd, option, flags, maxfd;
+    char if_name[IFH_WADDR_LEN] = "";
+    int header_len = IP_HEDR_LEN;
+    uint16_t nread, nwrite, plength;
+    char buffer[BUF_SIZE];
+    struct i_sockaddr_in local, remote;
+    char remote_ip[16] = "";
+    unsigned short int port = PORT;
+    int sock_fd, net_fd, optval = 1;
+    socklen_t remotelen;
+    int cliserv = -1;
+    unsigned long int tap2net = 0, net2tap = 0;
+
     return 0;
 }
